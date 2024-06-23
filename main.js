@@ -1,11 +1,33 @@
 import './style.css'
+import vocabMapperLogo from '/epiHarmony-VM-logo.svg';
+import githubLogo from '/github-mark.svg';
 
 
 function ui(divID) {
     let divUI = divID ? document.getElementById(divID) : document.createElement('div');
 
     divUI.innerHTML = `
-<h1 class="text-3xl font-bold text-center">epiHarmony - Vocabulary Mapper</h1>
+<!-- Header -->
+<div id="header" class="mx-auto px-4 sm:px-10 py-2 border-b border-gray-500">
+    <div class="flex items-center justify-between">
+        <div class="flex items-center justify-start gap-2">
+            <div class="flex items-center">
+                <img src="${vocabMapperLogo}" class="h-16 w-16 gap-2" alt="pie logo" />
+            </div>
+            <div class="min-w-0 pl-3 flex-1">
+                <h2 class="flex items-center text-2xl font-bold leading-7 text-gray-800 sm:text-2xl sm:tracking-tight">epiHarmony -<span class="text-indigo-700 pl-2">Vocabulary Mapper</span></h2>
+            </div>
+        </div>
+      
+        <div class="flex md:mt-0 md:ml-4 shrink-0">
+            <a title="Source code" href="https://github.com/jeyabbalas/epiharmony-vocabulary-mapper">
+                <img src="${githubLogo}" class="h-14 w-14" alt="github logo" />
+            </a>
+        </div>
+    </div>
+</div>
+
+
 <div id="nearest-neighbors"></div>
      `;
 }
