@@ -5,6 +5,7 @@ function ui(divID) {
     let divUI = divID ? document.getElementById(divID) : document.createElement('div');
 
     divUI.innerHTML = `
+<h1 class="text-3xl font-bold text-center">epiHarmony - Vocabulary Mapper</h1>
 <div id="nearest-neighbors"></div>
      `;
 }
@@ -48,9 +49,10 @@ function generateJsonSchemaUI(containerId, jsonSchema) {
         return;
     }
     container.innerHTML = "";
+    container.className = 'p-4';
 
     const tableWrapper = document.createElement('div');
-    tableWrapper.className = 'relative overflow-x-auto p-4 w-full';
+    tableWrapper.className = 'relative overflow-x-auto sm:rounded-lg w-full border border-gray-800';
 
     // Create table
     const table = document.createElement('table');
@@ -58,9 +60,8 @@ function generateJsonSchemaUI(containerId, jsonSchema) {
 
     // Create table header
     const thead = document.createElement('thead');
-    thead.className = 'text-gray-700 bg-gray-200 border';
     thead.innerHTML = `
-    <tr>
+    <tr class="text-gray-50 uppercase bg-indigo-700 border border-indigo-800">
       <th class="p-2 text-center">Select</th>
       <th class="p-2 text-center">Map</th>
       <th class="p-2 text-left">No.</th>
@@ -77,14 +78,15 @@ function generateJsonSchemaUI(containerId, jsonSchema) {
     // Populate table rows
     Object.entries(jsonSchema).forEach(([key, value], index) => {
         const row = document.createElement('tr');
-        row.className = 'bg-white border hover:bg-gray-50';
+        const isFinalIndex = index === Object.keys(jsonSchema).length - 1;
+        row.className = isFinalIndex ? 'bg-white hover:bg-indigo-50' : 'bg-white border-b hover:bg-indigo-50';
 
         // Select checkbox
         const cellSelect = document.createElement('td');
         const checkboxSelect = document.createElement('input');
         checkboxSelect.type = 'checkbox';
         checkboxSelect.checked = true;
-        checkboxSelect.className = 'form-checkbox h-5 w-5 text-blue-600';
+        checkboxSelect.className = 'form-checkbox h-5 w-5 accent-indigo-700';
         checkboxSelect.dataset.key = key;
         checkboxSelect.dataset.type = 'select';
         cellSelect.appendChild(checkboxSelect);
@@ -96,7 +98,7 @@ function generateJsonSchemaUI(containerId, jsonSchema) {
         const checkboxMap = document.createElement('input');
         checkboxMap.type = 'checkbox';
         checkboxMap.checked = false;
-        checkboxMap.className = 'form-checkbox h-5 w-5 text-green-600';
+        checkboxMap.className = 'form-checkbox h-5 w-5 accent-indigo-700';
         checkboxMap.dataset.key = key;
         checkboxMap.dataset.type = 'map';
         cellMap.appendChild(checkboxMap);
@@ -117,7 +119,7 @@ function generateJsonSchemaUI(containerId, jsonSchema) {
 
         // Description
         const cellDesc = document.createElement('td');
-        cellDesc.textContent = value.description || '';
+        cellDesc.textContent = value.description || '-';
         cellDesc.className = 'p-2';
         row.appendChild(cellDesc);
 
@@ -128,7 +130,7 @@ function generateJsonSchemaUI(containerId, jsonSchema) {
         if (Object.keys(value).length > 1) {
             const toggleBtn = document.createElement('button');
             toggleBtn.textContent = 'Show more';
-            toggleBtn.className = 'bg-blue-500 hover:bg-blue-600 text-white shadow-md px-2 py-1 rounded text-sm';
+            toggleBtn.className = 'bg-indigo-700 hover:bg-indigo-600 text-white shadow-md px-2 py-1 rounded text-sm';
 
             const infoContent = document.createElement('div');
             infoContent.className = 'mt-2 hidden';
