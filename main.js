@@ -49,20 +49,24 @@ function generateJsonSchemaUI(containerId, jsonSchema) {
     }
     container.innerHTML = "";
 
+    const tableWrapper = document.createElement('div');
+    tableWrapper.className = 'relative overflow-x-auto p-4 w-full';
+
     // Create table
     const table = document.createElement('table');
-    table.className = 'w-full border-collapse';
+    table.className = 'text-sm text-gray-500 w-full border-collapse';
 
     // Create table header
     const thead = document.createElement('thead');
+    thead.className = 'text-gray-700 bg-gray-200 border';
     thead.innerHTML = `
-    <tr class="bg-gray-200">
-      <th class="border p-2 text-left">Select</th>
-      <th class="border p-2 text-left">Map</th>
-      <th class="border p-2 text-left">No.</th>
-      <th class="border p-2 text-left">Variable name</th>
-      <th class="border p-2 text-left">Description</th>
-      <th class="border p-2 text-left">Additional information</th>
+    <tr>
+      <th class="p-2 text-center">Select</th>
+      <th class="p-2 text-center">Map</th>
+      <th class="p-2 text-left">No.</th>
+      <th class="p-2 text-left">Variable name</th>
+      <th class="p-2 text-left">Description</th>
+      <th class="p-2 text-left">Additional information</th>
     </tr>
   `;
     table.appendChild(thead);
@@ -73,7 +77,7 @@ function generateJsonSchemaUI(containerId, jsonSchema) {
     // Populate table rows
     Object.entries(jsonSchema).forEach(([key, value], index) => {
         const row = document.createElement('tr');
-        row.className = index % 2 === 0 ? 'bg-white' : 'bg-gray-100';
+        row.className = 'bg-white border hover:bg-gray-50';
 
         // Select checkbox
         const cellSelect = document.createElement('td');
@@ -84,7 +88,7 @@ function generateJsonSchemaUI(containerId, jsonSchema) {
         checkboxSelect.dataset.key = key;
         checkboxSelect.dataset.type = 'select';
         cellSelect.appendChild(checkboxSelect);
-        cellSelect.className = 'border p-2';
+        cellSelect.className = 'p-2 text-center';
         row.appendChild(cellSelect);
 
         // Map checkbox
@@ -96,35 +100,35 @@ function generateJsonSchemaUI(containerId, jsonSchema) {
         checkboxMap.dataset.key = key;
         checkboxMap.dataset.type = 'map';
         cellMap.appendChild(checkboxMap);
-        cellMap.className = 'border p-2';
+        cellMap.className = 'p-2 text-center';
         row.appendChild(cellMap);
 
         // Serial number
         const cellNo = document.createElement('td');
-        cellNo.textContent = index + 1;
-        cellNo.className = 'border p-2';
+        cellNo.textContent = (index + 1).toString();
+        cellNo.className = 'p-2';
         row.appendChild(cellNo);
 
         // Variable name
         const cellName = document.createElement('td');
         cellName.textContent = key;
-        cellName.className = 'border p-2';
+        cellName.className = 'font-medium text-gray-900 p-2';
         row.appendChild(cellName);
 
         // Description
         const cellDesc = document.createElement('td');
         cellDesc.textContent = value.description || '';
-        cellDesc.className = 'border p-2';
+        cellDesc.className = 'p-2';
         row.appendChild(cellDesc);
 
         // Additional information
         const cellInfo = document.createElement('td');
-        cellInfo.className = 'border p-2';
+        cellInfo.className = 'p-2';
 
         if (Object.keys(value).length > 1) {
             const toggleBtn = document.createElement('button');
             toggleBtn.textContent = 'Show more';
-            toggleBtn.className = 'bg-blue-500 text-white px-2 py-1 rounded text-sm';
+            toggleBtn.className = 'bg-blue-500 hover:bg-blue-600 text-white shadow-md px-2 py-1 rounded text-sm';
 
             const infoContent = document.createElement('div');
             infoContent.className = 'mt-2 hidden';
@@ -144,7 +148,8 @@ function generateJsonSchemaUI(containerId, jsonSchema) {
     });
 
     table.appendChild(tbody);
-    container.appendChild(table);
+    tableWrapper.appendChild(table);
+    container.appendChild(tableWrapper);
 }
 
 
