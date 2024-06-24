@@ -438,11 +438,12 @@ const resetAppUrl = () => {
 submitData.addEventListener('click', async () => {
     const originalHTML = setButtonState(submitData, true);
 
-    clearContainers([sourceSchemaErrorMessage, targetSchemaErrorMessage, mappingErrorMessage]);
-    // Note: in the future, send warning to the user if data already exists in local forage
-    await localforage.clear();
-
     try {
+        clearContainers([sourceSchemaErrorMessage, targetSchemaErrorMessage, mappingErrorMessage]);
+        // Note: in the future, send warning to the user if data already exists in local forage
+        await localforage.clear();
+        resetAppUrl();
+
         await handleSchemaProcessing('source', sourceSchemaUpload, sourceSchemaURL, sourceSchemaErrorMessage);
         await handleSchemaProcessing('target', targetSchemaUpload, targetSchemaURL, targetSchemaErrorMessage);
         await handleMappingProcessing(mappingUpload, mappingURL, mappingErrorMessage);
@@ -460,6 +461,8 @@ submitData.addEventListener('click', async () => {
             displayError(error.message, targetSchemaErrorMessage);
         } else if (error instanceof MappingError) {
             displayError(error.message, mappingErrorMessage);
+        } else {
+            console.error(error);
         }
     } finally {
         setButtonState(submitData, false, originalHTML);
