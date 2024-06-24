@@ -8,11 +8,11 @@ function ui(divID) {
 
     divUI.innerHTML = `
 <!-- Header -->
-<div id="header" class="mx-auto px-4 sm:px-10 py-2 border-b rounded-b-lg border-gray-800">
+<div id="header" class="mx-auto px-4 sm:px-10 py-2 border-b border-gray-400">
     <div class="flex items-center justify-between">
         <div class="flex items-center justify-start gap-2">
             <div class="flex items-center">
-                <img src="${vocabMapperLogo}" class="h-12 sm:h-16 w-12 sm:w-16 gap-2" alt="pie logo" />
+                <img src="${vocabMapperLogo}" class="h-12 sm:h-16 w-12 sm:w-16 gap-2" alt="epiharmony vacabulary mapper logo" />
             </div>
             <div class="min-w-0 pl-2 sm:pl-4 flex-1">
                 <h2 class="flex items-center text-xl font-bold leading-7 text-indigo-900 sm:text-2xl sm:tracking-tight">epiHarmony</h2>
@@ -28,8 +28,133 @@ function ui(divID) {
     </div>
 </div>
 
+<!-- Configuration -->
+<div class="mx-4 my-4 py-4 px-4 border border-gray-400 rounded-md">
+    <!-- Title -->
+    <h1 class="pl-4 pb-6 pt-2 text-xl font-bold text-indigo-900">Data upload</h1>
+    
+    <!-- Flex container for panels and logo -->
+    <div class="flex items-center justify-between mb-4">
+        <!-- Source schema upload -->
+        <div id="source-schema-panel" class="relative py-2 w-[46%]">
+            <h2 class="absolute transform left-4 -translate-y-1/2 px-2 font-bold text-gray-900 bg-white whitespace-nowrap">Source schema</h2>
+            <div class="rounded-md border border-gray-400 p-2 flex flex-col items-center pt-6">
+                <!-- Source schema file upload -->
+                <div class="relative rounded-t-md px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2">
+                    <label for="source-schema-upload" class="block font-medium text-sm">File upload</label>
+                    <input type="file" id="source-schema-upload" name="source-schema-upload" class="block rounded-sm w-full p-1 mb-1 bg-gray-200 text-sm text-gray-500 placeholder:text-gray-900 focus:outline-none focus:ring-0 focus:border-0" accept=".json" required>
+                </div>
+                
+                <!-- or -->
+                <div class="relative w-full my-1">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-400"></div>
+                    </div>
+                    <div class="relative flex justify-center">
+                        <span class="bg-white px-2 text-gray-900">or</span>
+                    </div>
+                </div>
+                
+                <!-- Source schema URL input -->
+                <div class="relative rounded-md rounded-t-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2">
+                    <label for="source-data-url" class="block font-medium text-sm text-gray-900">File URL</label>
+                    <input type="url" id="source-data-url" name="source-data-url" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-200 text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-0 focus:border-0" placeholder="Enter URL" required>
+                </div>
+                
+                <!-- Source schema error message container -->
+                <div id="source-schema-error-message"></div>
+            </div>
+        </div>
 
-<div id="nearest-neighbors"></div>
+        <!-- Logo -->
+        <div class="flex items-center justify-center w-[8%]">
+            <img src="${vocabMapperLogo}" class="h-12 sm:h-14 w-12 sm:w-14" alt="epiharmony vocabulary mapper logo" />
+        </div>
+
+        <!-- Target schema upload -->
+        <div id="target-schema-panel" class="relative py-2 w-[46%]">
+            <h2 class="absolute transform left-4 -translate-y-1/2 px-2 font-bold text-gray-900 bg-white whitespace-nowrap">Target schema</h2>
+            <div class="rounded-md border border-gray-400 p-2 flex flex-col items-center pt-6">
+                <!-- Target schema file upload -->
+                <div class="relative rounded-t-md px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2">
+                    <label for="target-schema-upload" class="block font-medium text-sm">File upload</label>
+                    <input type="file" id="target-schema-upload" name="target-schema-upload" class="block rounded-sm w-full p-1 mb-1 bg-gray-200 text-sm text-gray-500 placeholder:text-gray-900 focus:outline-none focus:ring-0 focus:border-0" accept=".json" required>
+                </div>
+                
+                <!-- or -->
+                <div class="relative w-full my-1">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-400"></div>
+                    </div>
+                    <div class="relative flex justify-center">
+                        <span class="bg-white px-2 text-gray-900">or</span>
+                    </div>
+                </div>
+                
+                <!-- Target schema URL input -->
+                <div class="relative rounded-md rounded-t-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2">
+                    <label for="target-data-url" class="block font-medium text-sm text-gray-900">File URL</label>
+                    <input type="url" id="target-data-url" name="target-data-url" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-200 text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-0 focus:border-0" placeholder="Enter URL" required>
+                </div>
+                
+                <!-- Target schema error message container -->
+                <div id="target-schema-error-message"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="relative">
+        <div class="absolute inset-0 flex items-center" aria-hidden="true">
+            <div class="w-full border-t border-gray-300"></div>
+        </div>
+    </div>
+    
+    <div class="py-4">
+        <div class="flex justify-center gap-2">
+            <!-- Mapping upload -->
+            <div id="mapping-panel" class="relative py-2 px-10 w-[80%] sm:w-[46%]">
+                <h2 class="absolute transform left-14 -translate-y-1/2 px-2 font-bold text-gray-900 bg-white whitespace-nowrap">Mapping (optional)</h2>
+                <div class="rounded-md border border-gray-400 p-2 flex flex-col items-center pt-6">
+                    <!-- Mapping file upload -->
+                    <div class="relative rounded-t-md px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2">
+                        <label for="mapping-upload" class="block font-medium text-sm">File upload</label>
+                        <input type="file" id="mapping-upload" name="mapping-upload" class="block rounded-sm w-full p-1 mb-1 bg-gray-200 text-sm text-gray-500 placeholder:text-gray-900 focus:outline-none focus:ring-0 focus:border-0" accept=".json" required>
+                    </div>
+                    
+                    <!-- or -->
+                    <div class="relative w-full my-1">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-gray-400"></div>
+                        </div>
+                        <div class="relative flex justify-center">
+                            <span class="bg-white px-2 text-gray-900">or</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Mapping URL input -->
+                    <div class="relative rounded-md rounded-t-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2">
+                        <label for="mapping-data-url" class="block font-medium text-sm text-gray-900">File URL</label>
+                        <input type="url" id="mapping-data-url" name="mapping-data-url" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-200 text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-0 focus:border-0" placeholder="Enter URL" required>
+                    </div>
+                    
+                    <!-- Mapping error message container -->
+                    <div id="mapping-error-message"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Reset and submit buttons -->
+    <div class="py-1">
+        <div class="flex justify-center gap-2">
+            <button id="reset-data" class="rounded-md border border-white bg-red-700 text-base text-white py-1 px-2 font-medium shadow-sm hover:bg-red-700 focus:outline-none focus:ring-1 focus:ring-white">Reset</button>
+            <button id="submit-data" class="rounded-md border border-white bg-indigo-700 text-base text-white py-1 px-2 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white">Load data</button>
+        </div>
+    </div>
+</div>
+
+
+<div id="nearest-neighbors" class="p-4"></div>
      `;
 }
 
@@ -72,7 +197,6 @@ function generateJsonSchemaUI(containerId, jsonSchema) {
         return;
     }
     container.innerHTML = "";
-    container.className = 'p-4';
 
     const tableWrapper = document.createElement('div');
     tableWrapper.className = 'relative overflow-x-auto sm:rounded-lg w-full border border-gray-800';
@@ -113,7 +237,7 @@ function generateJsonSchemaUI(containerId, jsonSchema) {
         checkboxSelect.dataset.key = key;
         checkboxSelect.dataset.type = 'select';
         cellSelect.appendChild(checkboxSelect);
-        cellSelect.className = 'p-2 text-center';
+        cellSelect.className = 'p-1 text-center';
         row.appendChild(cellSelect);
 
         // Map checkbox
@@ -125,30 +249,30 @@ function generateJsonSchemaUI(containerId, jsonSchema) {
         checkboxMap.dataset.key = key;
         checkboxMap.dataset.type = 'map';
         cellMap.appendChild(checkboxMap);
-        cellMap.className = 'p-2 text-center';
+        cellMap.className = 'p-1 text-center';
         row.appendChild(cellMap);
 
         // Serial number
         const cellNo = document.createElement('td');
         cellNo.textContent = (index + 1).toString();
-        cellNo.className = 'p-2';
+        cellNo.className = 'p-1';
         row.appendChild(cellNo);
 
         // Variable name
         const cellName = document.createElement('td');
         cellName.textContent = key;
-        cellName.className = 'font-medium text-gray-900 p-2';
+        cellName.className = 'font-medium text-gray-900 p-1';
         row.appendChild(cellName);
 
         // Description
         const cellDesc = document.createElement('td');
         cellDesc.textContent = value.description || '-';
-        cellDesc.className = 'p-2';
+        cellDesc.className = 'p-1';
         row.appendChild(cellDesc);
 
         // Additional information
         const cellInfo = document.createElement('td');
-        cellInfo.className = 'p-2';
+        cellInfo.className = 'p-1';
 
         if (Object.keys(value).length > 1) {
             const toggleBtn = document.createElement('button');
