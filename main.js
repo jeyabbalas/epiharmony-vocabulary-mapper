@@ -1,8 +1,9 @@
+import localforage from 'https://cdn.skypack.dev/localforage@1.10.0?min';
+
 import './style.css'
 import vocabMapperLogo from '/epiHarmony-VM-logo.svg';
 import githubLogo from '/github-mark.svg';
 
-import localforage from 'https://cdn.skypack.dev/localforage@1.10.0?min';
 
 function ui(divID) {
     let divUI = divID ? document.getElementById(divID) : document.createElement('div');
@@ -29,8 +30,8 @@ function ui(divID) {
     </div>
 </div>
 
-<!-- Configuration -->
-<div class="mx-4 my-4 py-4 px-4 border border-gray-400 rounded-md">
+<!-- Data upload -->
+<div id="data-upload-panel" class="mx-4 my-4 py-4 px-4 border border-gray-400 rounded-md">
     <!-- Title -->
     <h1 class="pl-4 pb-6 pt-2 text-xl font-bold text-indigo-900">Step 1: Upload schemas</h1>
     
@@ -171,7 +172,7 @@ function ui(divID) {
 
 
 <!-- LLM Configuration -->
-<div class="mx-4 my-4 py-4 px-4 border border-gray-400 rounded-md">
+<div id="llm-config-panel" class="mx-4 my-4 py-4 px-4 border border-gray-400 rounded-md">
     <!-- Title -->
     <h1 class="pl-4 pb-6 pt-2 text-xl font-bold text-indigo-900">Step 2: Configure LLM</h1>
     
@@ -182,7 +183,7 @@ function ui(divID) {
 
 
 <!-- Map source concepts to target concepts -->
-<div class="mx-4 my-4 py-4 px-4 border border-gray-400 rounded-md">
+<div id="map-panel" class="mx-4 my-4 py-4 px-4 border border-gray-400 rounded-md">
     <!-- Title -->
     <h1 class="pl-4 pb-6 pt-2 text-xl font-bold text-indigo-900">Step 3: Map source concepts to target concepts</h1>
     
@@ -196,6 +197,14 @@ function ui(divID) {
 
 
 // User interface
+const scrollToContainer = (id) => {
+    const element = document.getElementById(id);
+    if (element) {
+        element.scrollIntoView({behavior: 'smooth'});
+    }
+};
+
+
 ui('app');
 
 
@@ -232,15 +241,41 @@ const fetchJsonData = async (url, container) => {
 };
 
 
+// Custom error classes
+class SourceSchemaError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = "SourceSchemaError";
+    }
+}
+
+class TargetSchemaError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = "TargetSchemaError";
+    }
+}
+
+class MappingError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = "MappingError";
+    }
+}
+
+
 const validateSchema = (schema) => {
+    // Schema should be an object
     if (!schema || typeof schema !== 'object') {
         return false;
     }
 
+    // Schema should contain "properties" key
     if (!schema.properties || typeof schema.properties !== 'object') {
         return false;
     }
 
+    // Schema should contain at least one property
     if (!Object.keys(schema.properties).length) {
         return false
     }
@@ -251,18 +286,36 @@ const validateSchema = (schema) => {
 
 const handleSchemaProcessing = async (schemaType, uploadElement, urlElement, errorMessageElement) => {
     if (!uploadElement.files.length && !urlElement.value) {
-        throw new Error(`${schemaType} schema is required.`);
+        if (schemaType === 'source') {
+            throw new SourceSchemaError(`${schemaType} schema is required.`);
+        } else if (schemaType === 'target') {
+            throw new TargetSchemaError(`${schemaType} schema is required.`);
+        }
     }
 
     let schema;
-    if (urlElement.value) {
-        schema = await fetchJsonData(urlElement.value, errorMessageElement);
-    } else {
-        schema = await parseJsonFile(uploadElement.files[0]);
+    try {
+        if (urlElement.value) {
+            schema = await fetchJsonData(urlElement.value, errorMessageElement);
+            uploadElement.value = '';
+        } else {
+            schema = await parseJsonFile(uploadElement.files[0]);
+            urlElement.value = '';
+        }
+    } catch (error) {
+        if (schemaType === 'source') {
+            throw new SourceSchemaError(`Error fetching or parsing ${schemaType} schema: ${error.message}`);
+        } else if (schemaType === 'target') {
+            throw new TargetSchemaError(`Error fetching or parsing ${schemaType} schema: ${error.message}`);
+        }
     }
 
     if (!validateSchema(schema)) {
-        throw new Error(`Invalid ${schemaType} schema.`);
+        if (schemaType === 'source') {
+            throw new SourceSchemaError(`Invalid ${schemaType} schema.`);
+        } else if (schemaType === 'target') {
+            throw new TargetSchemaError(`Invalid ${schemaType} schema.`);
+        }
     }
 
     await localforage.setItem(`${schemaType}Schema`, schema);
@@ -270,25 +323,58 @@ const handleSchemaProcessing = async (schemaType, uploadElement, urlElement, err
 
 
 const validateMapping = (mapping) => {
-    // TODO
+    // Mapping should be an object
+    if (!mapping || typeof mapping !== 'object') {
+        return false;
+    }
+
+    // Mapping should contain both keys: "nodes" and "edges"
+    if (!mapping.nodes || !mapping.edges) {
+        return false;
+    }
+
+    // Both "nodes" and "edges" should be arrays
+    if (!Array.isArray(mapping.nodes) || !Array.isArray(mapping.edges)) {
+        return false;
+    }
+
+    // If "nodes" array is not empty, it should contain objects and the objects must have both keys: "id" and "group"
+    if (mapping.nodes.length && !mapping.nodes.every(node => typeof node === 'object' && node.id && node.group)) {
+        return false;
+    }
+
+    // If "edges" array is not empty, it should contain objects and the objects must have both keys: "source" and "target"
+    if (mapping.edges.length && !mapping.edges.every(edge => typeof edge === 'object' && edge.source && edge.target)) {
+        return false;
+    }
+
     return true;
 };
 
 
 const handleMappingProcessing = async (uploadElement, urlElement, errorMessageElement) => {
     if (!uploadElement.files.length && !urlElement.value) {
+        const initMapping = {
+            "nodes": [],
+            "edges": []
+        }
+        await localforage.setItem('mapping', initMapping);
         return;
     }
 
     let mapping;
-    if (urlElement.value) {
-        mapping = await fetchJsonData(urlElement.value, errorMessageElement);
-    } else {
-        mapping = await parseJsonFile(uploadElement.files[0]);
+    try {
+        if (urlElement.value) {
+            mapping = await fetchJsonData(urlElement.value, errorMessageElement);
+        } else {
+            mapping = await parseJsonFile(uploadElement.files[0]);
+        }
+    } catch (error) {
+        throw new MappingError(`Error fetching or parsing the mapping file: ${error.message}`);
     }
 
     if (!validateMapping(mapping)) {
-        throw new Error('Invalid mapping.');
+        throw new MappingError('Invalid mapping.');
     }
 
     await localforage.setItem('mapping', mapping);
@@ -330,21 +416,51 @@ const setButtonState = (button, isLoading, originalHTML = null) => {
 };
 
 
+function updateAppUrl(sourceUrl, targetUrl, mappingUrl) {
+    // Base URL + required parameters
+    let newUrl = `${window.location.origin}${window.location.pathname}?sourceSchemaUrl=${encodeURIComponent(sourceUrl)}&targetSchemaUrl=${encodeURIComponent(targetUrl)}`;
+
+    // Optional parameter
+    if (mappingUrl) {
+        newUrl += `&mappingUrl=${encodeURIComponent(mappingUrl)}`;
+    }
+
+    // Update the URL in the browser
+    window.history.replaceState(null, '', newUrl);
+}
+
+
+const resetAppUrl = () => {
+    window.history.replaceState(null, '', `${window.location.origin}${window.location.pathname}`);
+};
+
+
 submitData.addEventListener('click', async () => {
     const originalHTML = setButtonState(submitData, true);
 
-    try {
-        clearContainers([sourceSchemaErrorMessage, targetSchemaErrorMessage, mappingErrorMessage]);
-        await localforage.clear();
+    clearContainers([sourceSchemaErrorMessage, targetSchemaErrorMessage, mappingErrorMessage]);
+    // Note: in the future, send warning to the user if data already exists in local forage
+    await localforage.clear();
 
+    try {
         await handleSchemaProcessing('source', sourceSchemaUpload, sourceSchemaURL, sourceSchemaErrorMessage);
         await handleSchemaProcessing('target', targetSchemaUpload, targetSchemaURL, targetSchemaErrorMessage);
         await handleMappingProcessing(mappingUpload, mappingURL, mappingErrorMessage);
 
-        // TODO: Additional processing
-
+        updateAppUrl(sourceSchemaURL.value, targetSchemaURL.value, mappingURL.value);
+        displaySuccess('Source schema loaded successfully.', sourceSchemaErrorMessage);
+        displaySuccess('Target schema loaded successfully.', targetSchemaErrorMessage);
+        if (mappingURL.value || mappingUpload.files.length) {
+            displaySuccess('Mapping loaded successfully.', mappingErrorMessage);
+        }
     } catch (error) {
-        displayError(error.message, error.message.includes('source') ? sourceSchemaErrorMessage : targetSchemaErrorMessage);
+        if (error instanceof SourceSchemaError) {
+            displayError(error.message, sourceSchemaErrorMessage);
+        } else if (error instanceof TargetSchemaError) {
+            displayError(error.message, targetSchemaErrorMessage);
+        } else if (error instanceof MappingError) {
+            displayError(error.message, mappingErrorMessage);
+        }
     } finally {
         setButtonState(submitData, false, originalHTML);
     }
@@ -360,20 +476,6 @@ resetData.addEventListener('click', () => {
 window.addEventListener('DOMContentLoaded', async () => {
     // TODO
 });
-
-
-function updateAppUrl(sourceUrl, targetUrl, mappingUrl) {
-    // Base URL with required parameters
-    let newUrl = `${window.location.origin}${window.location.pathname}?sourceSchemaUrl=${encodeURIComponent(sourceUrl)}&targetSchemaUrl=${encodeURIComponent(targetUrl)}`;
-
-    // Append the optional parameter if it is provided
-    if (mappingUrl) {
-        newUrl += `&mappingUrl=${encodeURIComponent(mappingUrl)}`;
-    }
-
-    // Update the URL in the browser
-    window.history.replaceState(null, '', newUrl);
-}
 
 
 function clearContainers(containers) {
