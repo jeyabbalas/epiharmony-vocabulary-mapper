@@ -249,6 +249,52 @@ const validateSchema = (schema) => {
 };
 
 
+const handleSchemaProcessing = async (schemaType, uploadElement, urlElement, errorMessageElement) => {
+    if (!uploadElement.files.length && !urlElement.value) {
+        throw new Error(`${schemaType} schema is required.`);
+    }
+
+    let schema;
+    if (urlElement.value) {
+        schema = await fetchJsonData(urlElement.value, errorMessageElement);
+    } else {
+        schema = await parseJsonFile(uploadElement.files[0]);
+    }
+
+    if (!validateSchema(schema)) {
+        throw new Error(`Invalid ${schemaType} schema.`);
+    }
+
+    await localforage.setItem(`${schemaType}Schema`, schema);
+};
+
+
+const validateMapping = (mapping) => {
+    // TODO
+    return true;
+};
+
+
+const handleMappingProcessing = async (uploadElement, urlElement, errorMessageElement) => {
+    if (!uploadElement.files.length && !urlElement.value) {
+        return;
+    }
+
+    let mapping;
+    if (urlElement.value) {
+        mapping = await fetchJsonData(urlElement.value, errorMessageElement);
+    } else {
+        mapping = await parseJsonFile(uploadElement.files[0]);
+    }
+
+    if (!validateMapping(mapping)) {
+        throw new Error('Invalid mapping.');
+    }
+
+    await localforage.setItem('mapping', mapping);
+};
+
+
 const displayError = (message, container) => {
     const errorMessage = document.createElement('div');
     errorMessage.classList.add('bg-red-50', 'border', 'border-red-300', 'text-red-800', 'px-2', 'py-1', 'rounded', 'relative', 'text-sm', 'mt-2');
@@ -284,26 +330,6 @@ const setButtonState = (button, isLoading, originalHTML = null) => {
 };
 
 
-const handleSchemaProcessing = async (schemaType, uploadElement, urlElement, errorMessageElement) => {
-    if (!uploadElement.files.length && !urlElement.value) {
-        throw new Error(`${schemaType} schema is required.`);
-    }
-
-    let schema;
-    if (urlElement.value) {
-        schema = await fetchJsonData(urlElement.value, errorMessageElement);
-    } else {
-        schema = await parseJsonFile(uploadElement.files[0]);
-    }
-
-    if (!validateSchema(schema)) {
-        throw new Error(`Invalid ${schemaType} schema.`);
-    }
-
-    await localforage.setItem(`${schemaType}Schema`, schema);
-};
-
-
 submitData.addEventListener('click', async () => {
     const originalHTML = setButtonState(submitData, true);
 
@@ -313,6 +339,7 @@ submitData.addEventListener('click', async () => {
 
         await handleSchemaProcessing('source', sourceSchemaUpload, sourceSchemaURL, sourceSchemaErrorMessage);
         await handleSchemaProcessing('target', targetSchemaUpload, targetSchemaURL, targetSchemaErrorMessage);
+        await handleMappingProcessing(mappingUpload, mappingURL, mappingErrorMessage);
 
         // TODO: Additional processing
 
