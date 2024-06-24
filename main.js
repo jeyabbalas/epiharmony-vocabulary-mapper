@@ -31,7 +31,7 @@ function ui(divID) {
 <!-- Configuration -->
 <div class="mx-4 my-4 py-4 px-4 border border-gray-400 rounded-md">
     <!-- Title -->
-    <h1 class="pl-4 pb-6 pt-2 text-xl font-bold text-indigo-900">Upload data</h1>
+    <h1 class="pl-4 pb-6 pt-2 text-xl font-bold text-indigo-900">Step 1: Upload schemas</h1>
     
     <div class="inset-0 flex items-center" aria-hidden="true">
         <div class="w-full border-t border-gray-300"></div>
@@ -41,12 +41,12 @@ function ui(divID) {
     <div class="flex items-center justify-between my-4">
         <!-- Source schema upload -->
         <div id="source-schema-panel" class="relative py-2 w-[46%]">
-            <h2 class="absolute transform left-4 -translate-y-1/2 px-2 font-bold text-gray-900 bg-white whitespace-nowrap">Source schema</h2>
+            <h2 class="absolute transform left-4 -translate-y-1/2 px-2 font-bold text-indigo-900 bg-white whitespace-nowrap">Source schema</h2>
             <div class="rounded-md border border-gray-400 p-2 flex flex-col items-center pt-6">
                 <!-- Source schema file upload -->
                 <div class="relative rounded-t-md px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2">
-                    <label for="source-schema-upload" class="block font-medium text-sm">File upload</label>
-                    <input type="file" id="source-schema-upload" name="source-schema-upload" class="block rounded-sm w-full p-1 mb-1 bg-gray-200 text-sm text-gray-500 placeholder:text-gray-900 focus:outline-none focus:ring-0 focus:border-0" accept=".json" required>
+                    <label for="source-schema-upload" class="block font-medium text-sm text-indigo-900">File upload</label>
+                    <input type="file" id="source-schema-upload" name="source-schema-upload" class="block rounded-sm w-full p-1 mb-1 bg-indigo-100 text-sm text-indigo-900 placeholder:text-indigo-500 focus:outline-none focus:ring-0 focus:border-0" accept=".json" required>
                 </div>
                 
                 <!-- or -->
@@ -61,8 +61,8 @@ function ui(divID) {
                 
                 <!-- Source schema URL input -->
                 <div class="relative rounded-md rounded-t-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2">
-                    <label for="source-data-url" class="block font-medium text-sm text-gray-900">File URL</label>
-                    <input type="url" id="source-data-url" name="source-data-url" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-200 text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-0 focus:border-0" placeholder="Enter URL" required>
+                    <label for="source-data-url" class="block font-medium text-sm text-indigo-900">File URL</label>
+                    <input type="url" id="source-data-url" name="source-data-url" class="block rounded-sm w-full border-0 p-1 mb-1 bg-indigo-100 text-sm text-indigo-900 placeholder:text-indigo-500 focus:outline-none focus:ring-0 focus:border-0" placeholder="Enter URL" required>
                 </div>
                 
                 <!-- Source schema error message container -->
@@ -77,12 +77,12 @@ function ui(divID) {
 
         <!-- Target schema upload -->
         <div id="target-schema-panel" class="relative py-2 w-[46%]">
-            <h2 class="absolute transform left-4 -translate-y-1/2 px-2 font-bold text-gray-900 bg-white whitespace-nowrap">Target schema</h2>
+            <h2 class="absolute transform left-4 -translate-y-1/2 px-2 font-bold text-indigo-900 bg-white whitespace-nowrap">Target schema</h2>
             <div class="rounded-md border border-gray-400 p-2 flex flex-col items-center pt-6">
                 <!-- Target schema file upload -->
                 <div class="relative rounded-t-md px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2">
-                    <label for="target-schema-upload" class="block font-medium text-sm">File upload</label>
-                    <input type="file" id="target-schema-upload" name="target-schema-upload" class="block rounded-sm w-full p-1 mb-1 bg-gray-200 text-sm text-gray-500 placeholder:text-gray-900 focus:outline-none focus:ring-0 focus:border-0" accept=".json" required>
+                    <label for="target-schema-upload" class="block font-medium text-sm text-indigo-900">File upload</label>
+                    <input type="file" id="target-schema-upload" name="target-schema-upload" class="block rounded-sm w-full p-1 mb-1 bg-indigo-100 text-sm text-indigo-900 placeholder:text-indigo-500 focus:outline-none focus:ring-0 focus:border-0" accept=".json" required>
                 </div>
                 
                 <!-- or -->
@@ -97,8 +97,8 @@ function ui(divID) {
                 
                 <!-- Target schema URL input -->
                 <div class="relative rounded-md rounded-t-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2">
-                    <label for="target-data-url" class="block font-medium text-sm text-gray-900">File URL</label>
-                    <input type="url" id="target-data-url" name="target-data-url" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-200 text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-0 focus:border-0" placeholder="Enter URL" required>
+                    <label for="target-data-url" class="block font-medium text-sm text-indigo-900">File URL</label>
+                    <input type="url" id="target-data-url" name="target-data-url" class="block rounded-sm w-full border-0 p-1 mb-1 bg-indigo-100 text-sm text-indigo-900 placeholder:text-indigo-500 focus:outline-none focus:ring-0 focus:border-0" placeholder="Enter URL" required>
                 </div>
                 
                 <!-- Target schema error message container -->
@@ -124,12 +124,12 @@ function ui(divID) {
         <div class="flex justify-center gap-2">
             <!-- Mapping upload -->
             <div id="mapping-panel" class="relative py-2 px-10 w-[80%] sm:w-[46%]">
-                <h2 class="absolute transform left-14 -translate-y-1/2 px-2 font-bold text-gray-900 bg-white whitespace-nowrap">Mapping (optional)</h2>
+                <h2 class="absolute transform left-14 -translate-y-1/2 px-2 font-bold text-indigo-900 bg-white whitespace-nowrap">Mapping (optional)</h2>
                 <div class="rounded-md border border-gray-400 p-2 flex flex-col items-center pt-6">
                     <!-- Mapping file upload -->
                     <div class="relative rounded-t-md px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2">
-                        <label for="mapping-upload" class="block font-medium text-sm">File upload</label>
-                        <input type="file" id="mapping-upload" name="mapping-upload" class="block rounded-sm w-full p-1 mb-1 bg-gray-200 text-sm text-gray-500 placeholder:text-gray-900 focus:outline-none focus:ring-0 focus:border-0" accept=".json" required>
+                        <label for="mapping-upload" class="block font-medium text-sm text-indigo-900">File upload</label>
+                        <input type="file" id="mapping-upload" name="mapping-upload" class="block rounded-sm w-full p-1 mb-1 bg-indigo-100 text-sm text-indigo-900 placeholder:text-indigo-500 focus:outline-none focus:ring-0 focus:border-0" accept=".json" required>
                     </div>
                     
                     <!-- or -->
@@ -144,8 +144,8 @@ function ui(divID) {
                     
                     <!-- Mapping URL input -->
                     <div class="relative rounded-md rounded-t-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2">
-                        <label for="mapping-data-url" class="block font-medium text-sm text-gray-900">File URL</label>
-                        <input type="url" id="mapping-data-url" name="mapping-data-url" class="block rounded-sm w-full border-0 p-1 mb-1 bg-gray-200 text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-0 focus:border-0" placeholder="Enter URL" required>
+                        <label for="mapping-data-url" class="block font-medium text-sm text-indigo-900">File URL</label>
+                        <input type="url" id="mapping-data-url" name="mapping-data-url" class="block rounded-sm w-full border-0 p-1 mb-1 bg-indigo-100 text-sm text-indigo-900 placeholder:text-indigo-500 focus:outline-none focus:ring-0 focus:border-0" placeholder="Enter URL" required>
                     </div>
                     
                     <!-- Mapping error message container -->
@@ -162,19 +162,44 @@ function ui(divID) {
     <!-- Reset and submit buttons -->
     <div class="pt-4">
         <div class="flex justify-center gap-2">
-            <button id="reset-data" class="rounded-md border border-white bg-red-700 text-base text-white py-1 px-2 font-medium shadow-sm hover:bg-red-700 focus:outline-none focus:ring-1 focus:ring-white">Reset</button>
-            <button id="submit-data" class="rounded-md border border-white bg-indigo-700 text-base text-white py-1 px-2 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white">Load data</button>
+            <button id="reset-data" class="rounded-md border border-black bg-red-700 text-base text-white py-1 px-3 font-medium shadow-md hover:bg-red-600 focus:outline-none focus:ring-1 focus:ring-white">Reset</button>
+            <button id="submit-data" class="rounded-md border border-black bg-indigo-700 text-base text-white py-1 px-3 font-medium shadow-md hover:bg-indigo-600 focus:outline-none focus:ring-1 focus:ring-white">Load</button>
         </div>
     </div>
 </div>
 
 
+<!-- LLM Configuration -->
+<div class="mx-4 my-4 py-4 px-4 border border-gray-400 rounded-md">
+    <!-- Title -->
+    <h1 class="pl-4 pb-6 pt-2 text-xl font-bold text-indigo-900">Step 2: Configure LLM</h1>
+    
+    <div class="inset-0 flex items-center" aria-hidden="true">
+        <div class="w-full border-t border-gray-300"></div>
+    </div>
+</div>
+
+
+<!-- Map source concepts to target concepts -->
+<div class="mx-4 my-4 py-4 px-4 border border-gray-400 rounded-md">
+    <!-- Title -->
+    <h1 class="pl-4 pb-6 pt-2 text-xl font-bold text-indigo-900">Step 3: Map source concepts to target concepts</h1>
+    
+    <div class="inset-0 flex items-center" aria-hidden="true">
+        <div class="w-full border-t border-gray-300"></div>
+    </div>
+</div>
 <div id="nearest-neighbors" class="p-4"></div>
      `;
 }
 
 
+// User interface
 ui('app');
+
+
+// Data setup
+
 
 const exampleJson = {
     "name": {type: ["string", "null"], "description": "Name of the person"},
