@@ -2,6 +2,7 @@ import './style.css'
 import vocabMapperLogo from '/epiHarmony-VM-logo.svg';
 import githubLogo from '/github-mark.svg';
 
+import localforage from 'https://cdn.skypack.dev/localforage@1.10.0?min';
 
 function ui(divID) {
     let divUI = divID ? document.getElementById(divID) : document.createElement('div');
@@ -61,8 +62,8 @@ function ui(divID) {
                 
                 <!-- Source schema URL input -->
                 <div class="relative rounded-md rounded-t-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2">
-                    <label for="source-data-url" class="block font-medium text-sm text-indigo-900">File URL</label>
-                    <input type="url" id="source-data-url" name="source-data-url" class="block rounded-sm w-full border-0 p-1 mb-1 bg-indigo-100 text-sm text-indigo-900 placeholder:text-indigo-500 focus:outline-none focus:ring-0 focus:border-0" placeholder="Enter URL" required>
+                    <label for="source-schema-url" class="block font-medium text-sm text-indigo-900">File URL</label>
+                    <input type="url" id="source-schema-url" name="source-schema-url" class="block rounded-sm w-full border-0 p-1 mb-1 bg-indigo-100 text-sm text-indigo-900 placeholder:text-indigo-500 focus:outline-none focus:ring-0 focus:border-0" placeholder="Enter URL" required>
                 </div>
                 
                 <!-- Source schema error message container -->
@@ -97,8 +98,8 @@ function ui(divID) {
                 
                 <!-- Target schema URL input -->
                 <div class="relative rounded-md rounded-t-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2">
-                    <label for="target-data-url" class="block font-medium text-sm text-indigo-900">File URL</label>
-                    <input type="url" id="target-data-url" name="target-data-url" class="block rounded-sm w-full border-0 p-1 mb-1 bg-indigo-100 text-sm text-indigo-900 placeholder:text-indigo-500 focus:outline-none focus:ring-0 focus:border-0" placeholder="Enter URL" required>
+                    <label for="target-schema-url" class="block font-medium text-sm text-indigo-900">File URL</label>
+                    <input type="url" id="target-schema-url" name="target-schema-url" class="block rounded-sm w-full border-0 p-1 mb-1 bg-indigo-100 text-sm text-indigo-900 placeholder:text-indigo-500 focus:outline-none focus:ring-0 focus:border-0" placeholder="Enter URL" required>
                 </div>
                 
                 <!-- Target schema error message container -->
@@ -113,7 +114,7 @@ function ui(divID) {
         </div>
         <div class="relative flex justify-center">
             <span class="bg-white px-2 text-gray-500">
-            <svg class="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <svg class="h-5 w-5 text-indigo-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
             </svg>
             </span>
@@ -144,8 +145,8 @@ function ui(divID) {
                     
                     <!-- Mapping URL input -->
                     <div class="relative rounded-md rounded-t-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2">
-                        <label for="mapping-data-url" class="block font-medium text-sm text-indigo-900">File URL</label>
-                        <input type="url" id="mapping-data-url" name="mapping-data-url" class="block rounded-sm w-full border-0 p-1 mb-1 bg-indigo-100 text-sm text-indigo-900 placeholder:text-indigo-500 focus:outline-none focus:ring-0 focus:border-0" placeholder="Enter URL" required>
+                        <label for="mapping-url" class="block font-medium text-sm text-indigo-900">File URL</label>
+                        <input type="url" id="mapping-url" name="mapping-url" class="block rounded-sm w-full border-0 p-1 mb-1 bg-indigo-100 text-sm text-indigo-900 placeholder:text-indigo-500 focus:outline-none focus:ring-0 focus:border-0" placeholder="Enter URL" required>
                     </div>
                     
                     <!-- Mapping error message container -->
@@ -198,7 +199,161 @@ function ui(divID) {
 ui('app');
 
 
-// Data setup
+// Step 1: Upload schemas
+const sourceSchemaUpload = document.getElementById('source-schema-upload');
+const targetSchemaUpload = document.getElementById('target-schema-upload');
+const mappingUpload = document.getElementById('mapping-upload');
+
+const sourceSchemaURL = document.getElementById('source-schema-url');
+const targetSchemaURL = document.getElementById('target-schema-url');
+const mappingURL = document.getElementById('mapping-url');
+
+const sourceSchemaErrorMessage = document.getElementById('source-schema-error-message');
+const targetSchemaErrorMessage = document.getElementById('target-schema-error-message');
+const mappingErrorMessage = document.getElementById('mapping-error-message');
+
+const resetData = document.getElementById('reset-data');
+const submitData = document.getElementById('submit-data');
+
+
+const parseJsonFile = async (file) => {
+    const fileText = await file.text();
+    return JSON.parse(fileText);
+};
+
+
+const fetchJsonData = async (url, container) => {
+    const response = await fetch(url);
+    if (!response.ok) {
+        displayError(`Network response was not ok: ${response.statusText}`, container)
+        throw new Error(`Network response was not ok: ${response.statusText}`);
+    }
+    return await response.json();
+};
+
+
+const validateSchema = (schema) => {
+    if (!schema || typeof schema !== 'object') {
+        return false;
+    }
+
+    if (!schema.properties || typeof schema.properties !== 'object') {
+        return false;
+    }
+
+    if (!Object.keys(schema.properties).length) {
+        return false
+    }
+
+    return true;
+};
+
+
+const displayError = (message, container) => {
+    const errorMessage = document.createElement('div');
+    errorMessage.classList.add('bg-red-50', 'border', 'border-red-300', 'text-red-800', 'px-2', 'py-1', 'rounded', 'relative', 'text-sm', 'mt-2');
+    errorMessage.innerHTML = `<strong class="font-bold">Error:</strong> ${message}`;
+    container.appendChild(errorMessage);
+};
+
+
+const displaySuccess = (message, container) => {
+    const successMessage = document.createElement('div');
+    successMessage.classList.add('bg-green-50', 'border', 'border-green-300', 'text-green-800', 'px-2', 'py-1', 'rounded', 'relative', 'text-sm', 'mt-2');
+    successMessage.innerHTML = `<strong class="font-bold">Success:</strong> ${message}`;
+    container.appendChild(successMessage);
+};
+
+
+const setButtonState = (button, isLoading, originalHTML = null) => {
+    if (isLoading) {
+        const currentHTML = button.innerHTML;
+        button.innerHTML = `
+            <svg aria-hidden="true" role="status" class="inline w-4 h-4 mr-2 text-white animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="#E5E7EB"/>
+                <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentColor"/>
+            </svg>
+            Loading...
+        `;
+        button.disabled = true;
+        return currentHTML;
+    } else {
+        button.innerHTML = originalHTML;
+        button.disabled = false;
+    }
+};
+
+
+const handleSchemaProcessing = async (schemaType, uploadElement, urlElement, errorMessageElement) => {
+    if (!uploadElement.files.length && !urlElement.value) {
+        throw new Error(`${schemaType} schema is required.`);
+    }
+
+    let schema;
+    if (urlElement.value) {
+        schema = await fetchJsonData(urlElement.value, errorMessageElement);
+    } else {
+        schema = await parseJsonFile(uploadElement.files[0]);
+    }
+
+    if (!validateSchema(schema)) {
+        throw new Error(`Invalid ${schemaType} schema.`);
+    }
+
+    await localforage.setItem(`${schemaType}Schema`, schema);
+};
+
+
+submitData.addEventListener('click', async () => {
+    const originalHTML = setButtonState(submitData, true);
+
+    try {
+        clearContainers([sourceSchemaErrorMessage, targetSchemaErrorMessage, mappingErrorMessage]);
+        await localforage.clear();
+
+        await handleSchemaProcessing('source', sourceSchemaUpload, sourceSchemaURL, sourceSchemaErrorMessage);
+        await handleSchemaProcessing('target', targetSchemaUpload, targetSchemaURL, targetSchemaErrorMessage);
+
+        // TODO: Additional processing
+
+    } catch (error) {
+        displayError(error.message, error.message.includes('source') ? sourceSchemaErrorMessage : targetSchemaErrorMessage);
+    } finally {
+        setButtonState(submitData, false, originalHTML);
+    }
+});
+
+
+resetData.addEventListener('click', () => {
+    // TODO
+});
+
+
+// App loaded through URL parameterization
+window.addEventListener('DOMContentLoaded', async () => {
+    // TODO
+});
+
+
+function updateAppUrl(sourceUrl, targetUrl, mappingUrl) {
+    // Base URL with required parameters
+    let newUrl = `${window.location.origin}${window.location.pathname}?sourceSchemaUrl=${encodeURIComponent(sourceUrl)}&targetSchemaUrl=${encodeURIComponent(targetUrl)}`;
+
+    // Append the optional parameter if it is provided
+    if (mappingUrl) {
+        newUrl += `&mappingUrl=${encodeURIComponent(mappingUrl)}`;
+    }
+
+    // Update the URL in the browser
+    window.history.replaceState(null, '', newUrl);
+}
+
+
+function clearContainers(containers) {
+    containers.forEach(container => {
+        container.innerHTML = '';
+    });
+}
 
 
 const exampleJson = {
