@@ -15,8 +15,8 @@ function ui(divID) {
                 <img src="${vocabMapperLogo}" class="h-12 sm:h-16 w-12 sm:w-16 gap-2" alt="epiharmony vacabulary mapper logo" />
             </div>
             <div class="min-w-0 pl-2 sm:pl-4 flex-1">
-                <h2 class="flex items-center text-xl font-bold leading-7 text-indigo-900 sm:text-2xl sm:tracking-tight">epiHarmony</h2>
-                <p class="text-indigo-700 text-sm sm:text-md sm:px-1">Vocabulary Mapper</p>
+                <h2 class="flex items-center text-xl font-bold leading-7 text-indigo-900 sm:text-3xl sm:tracking-tight">epiHarmony</h2>
+                <p class="text-indigo-700 text-sm font-medium sm:text-md">Vocabulary Mapper</p>
             </div>
         </div>
       
@@ -31,10 +31,14 @@ function ui(divID) {
 <!-- Configuration -->
 <div class="mx-4 my-4 py-4 px-4 border border-gray-400 rounded-md">
     <!-- Title -->
-    <h1 class="pl-4 pb-6 pt-2 text-xl font-bold text-indigo-900">Data upload</h1>
+    <h1 class="pl-4 pb-6 pt-2 text-xl font-bold text-indigo-900">Upload data</h1>
+    
+    <div class="inset-0 flex items-center" aria-hidden="true">
+        <div class="w-full border-t border-gray-300"></div>
+    </div>
     
     <!-- Flex container for panels and logo -->
-    <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center justify-between my-4">
         <!-- Source schema upload -->
         <div id="source-schema-panel" class="relative py-2 w-[46%]">
             <h2 class="absolute transform left-4 -translate-y-1/2 px-2 font-bold text-gray-900 bg-white whitespace-nowrap">Source schema</h2>
@@ -107,6 +111,13 @@ function ui(divID) {
         <div class="absolute inset-0 flex items-center" aria-hidden="true">
             <div class="w-full border-t border-gray-300"></div>
         </div>
+        <div class="relative flex justify-center">
+            <span class="bg-white px-2 text-gray-500">
+            <svg class="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+            </svg>
+            </span>
+        </div>
     </div>
     
     <div class="py-4">
@@ -144,8 +155,12 @@ function ui(divID) {
         </div>
     </div>
     
+    <div class="inset-0 flex items-center" aria-hidden="true">
+        <div class="w-full border-t border-gray-300"></div>
+    </div>
+    
     <!-- Reset and submit buttons -->
-    <div class="py-1">
+    <div class="pt-4">
         <div class="flex justify-center gap-2">
             <button id="reset-data" class="rounded-md border border-white bg-red-700 text-base text-white py-1 px-2 font-medium shadow-sm hover:bg-red-700 focus:outline-none focus:ring-1 focus:ring-white">Reset</button>
             <button id="submit-data" class="rounded-md border border-white bg-indigo-700 text-base text-white py-1 px-2 font-medium shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-white">Load data</button>
