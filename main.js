@@ -3,6 +3,7 @@ import localforage from 'https://cdn.skypack.dev/localforage@1.10.0?min';
 import './style.css'
 import vocabMapperLogo from '/epiHarmony-VM-logo.svg';
 import githubLogo from '/github-mark.svg';
+import {Embedding, manageOpenAIApiKey} from "./llmUtils.js";
 
 
 function ui(divID) {
@@ -46,7 +47,7 @@ function ui(divID) {
             <h2 class="absolute transform left-4 -translate-y-1/2 px-2 font-bold text-indigo-900 bg-white whitespace-nowrap">Source schema</h2>
             <div class="rounded-md border border-gray-400 p-2 flex flex-col items-center pt-6">
                 <!-- Source schema file upload -->
-                <div class="relative rounded-t-md px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2">
+                <div class="relative rounded-t-md px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2 focus-within:ring-indigo-600">
                     <label for="source-schema-upload" class="block font-medium text-sm text-indigo-900">File upload</label>
                     <input type="file" id="source-schema-upload" name="source-schema-upload" class="block rounded-sm w-full p-1 mb-1 bg-indigo-100 text-sm text-indigo-900 placeholder:text-indigo-500 focus:outline-none focus:ring-0 focus:border-0" accept=".json" required>
                 </div>
@@ -62,7 +63,7 @@ function ui(divID) {
                 </div>
                 
                 <!-- Source schema URL input -->
-                <div class="relative rounded-md rounded-t-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2">
+                <div class="relative rounded-md rounded-t-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2 focus-within:ring-indigo-600">
                     <label for="source-schema-url" class="block font-medium text-sm text-indigo-900">File URL</label>
                     <input type="url" id="source-schema-url" name="source-schema-url" class="block rounded-sm w-full border-0 p-1 mb-1 bg-indigo-100 text-sm text-indigo-900 placeholder:text-indigo-500 focus:outline-none focus:ring-0 focus:border-0" placeholder="Enter URL" required>
                 </div>
@@ -82,7 +83,7 @@ function ui(divID) {
             <h2 class="absolute transform left-4 -translate-y-1/2 px-2 font-bold text-indigo-900 bg-white whitespace-nowrap">Target schema</h2>
             <div class="rounded-md border border-gray-400 p-2 flex flex-col items-center pt-6">
                 <!-- Target schema file upload -->
-                <div class="relative rounded-t-md px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2">
+                <div class="relative rounded-t-md px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2 focus-within:ring-indigo-600">
                     <label for="target-schema-upload" class="block font-medium text-sm text-indigo-900">File upload</label>
                     <input type="file" id="target-schema-upload" name="target-schema-upload" class="block rounded-sm w-full p-1 mb-1 bg-indigo-100 text-sm text-indigo-900 placeholder:text-indigo-500 focus:outline-none focus:ring-0 focus:border-0" accept=".json" required>
                 </div>
@@ -98,7 +99,7 @@ function ui(divID) {
                 </div>
                 
                 <!-- Target schema URL input -->
-                <div class="relative rounded-md rounded-t-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2">
+                <div class="relative rounded-md rounded-t-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2 focus-within:ring-indigo-600">
                     <label for="target-schema-url" class="block font-medium text-sm text-indigo-900">File URL</label>
                     <input type="url" id="target-schema-url" name="target-schema-url" class="block rounded-sm w-full border-0 p-1 mb-1 bg-indigo-100 text-sm text-indigo-900 placeholder:text-indigo-500 focus:outline-none focus:ring-0 focus:border-0" placeholder="Enter URL" required>
                 </div>
@@ -122,14 +123,14 @@ function ui(divID) {
         </div>
     </div>
     
-    <div class="py-4">
+    <div class="relative py-4">
         <div class="flex justify-center gap-2">
             <!-- Mapping upload -->
-            <div id="mapping-panel" class="relative py-2 px-10 w-[80%] sm:w-[46%]">
+            <div id="mapping-panel" class="relative py-2 px-10 w-[90%] lg:w-[46%]">
                 <h2 class="absolute transform left-14 -translate-y-1/2 px-2 font-bold text-indigo-900 bg-white whitespace-nowrap">Mapping (optional)</h2>
                 <div class="rounded-md border border-gray-400 p-2 flex flex-col items-center pt-6">
                     <!-- Mapping file upload -->
-                    <div class="relative rounded-t-md px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2">
+                    <div class="relative rounded-t-md px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2 focus-within:ring-indigo-600">
                         <label for="mapping-upload" class="block font-medium text-sm text-indigo-900">File upload</label>
                         <input type="file" id="mapping-upload" name="mapping-upload" class="block rounded-sm w-full p-1 mb-1 bg-indigo-100 text-sm text-indigo-900 placeholder:text-indigo-500 focus:outline-none focus:ring-0 focus:border-0" accept=".json" required>
                     </div>
@@ -145,7 +146,7 @@ function ui(divID) {
                     </div>
                     
                     <!-- Mapping URL input -->
-                    <div class="relative rounded-md rounded-t-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2">
+                    <div class="relative rounded-md rounded-t-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2 focus-within:ring-indigo-600">
                         <label for="mapping-url" class="block font-medium text-sm text-indigo-900">File URL</label>
                         <input type="url" id="mapping-url" name="mapping-url" class="block rounded-sm w-full border-0 p-1 mb-1 bg-indigo-100 text-sm text-indigo-900 placeholder:text-indigo-500 focus:outline-none focus:ring-0 focus:border-0" placeholder="Enter URL" required>
                     </div>
@@ -179,7 +180,86 @@ function ui(divID) {
     <div class="inset-0 flex items-center" aria-hidden="true">
         <div class="w-full border-t border-gray-300"></div>
     </div>
+    
+    <div class="relative py-4">
+        <div class="flex justify-center gap-2">
+            <!-- LLM API config -->
+            <div id="llm-api-config-panel" class="relative py-2 px-10 w-[90%] lg:w-[46%]">
+                <h2 class="absolute transform left-14 -translate-y-1/2 px-2 font-bold text-indigo-900 bg-white whitespace-nowrap">LLM API</h2>
+                <div class="rounded-md border border-gray-400 p-2 flex flex-col items-center pt-6">
+                    <!-- LLM API base URL -->
+                    <div class="relative rounded-md rounded-b-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2 focus-within:ring-indigo-600">
+                        <label for="llm-base-url" class="block font-medium text-sm text-indigo-900">Base URL</label>
+                        <input type="url" id="llm-base-url" name="llm-base-url" class="block rounded-sm w-full border-0 p-1 mb-1 bg-indigo-100 text-sm text-indigo-900 placeholder:text-indigo-500 focus:outline-none focus:ring-0 focus:border-0" placeholder="https://api.openai.com/v1" value="https://api.openai.com/v1" required>
+                    </div>
+                    
+                    <!-- LLM API key -->
+                    <div class="relative rounded-md rounded-t-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2 focus-within:ring-indigo-600">
+                        <label for="embed-api-key" class="block font-medium text-sm text-indigo-900">API key</label>
+                        <input type="password" id="embed-api-key" name="embed-api-key" class="block rounded-sm w-full border-0 p-1 mb-1 bg-indigo-100 text-sm text-indigo-900 placeholder:text-indigo-500 focus:outline-none focus:ring-0 focus:border-0" required>
+                    </div>
+                    
+                    <!-- LLM API key message container -->
+                    <div id="api-key-message"></div>
+                    
+                    <div id="submit-api-key-buttons" class="py-1 mt-1">
+                        <div class="flex justify-center gap-2">
+                            <button id="forget-api-key" class="rounded-md border border-black bg-red-700 text-base text-white py-1 px-3 font-medium shadow-md hover:bg-red-600 focus:outline-none focus:ring-1 focus:ring-white">Forget API key</button>
+                            <button id="submit-api-key" class="rounded-md border border-black bg-indigo-700 text-base text-white py-1 px-3 font-medium shadow-md hover:bg-indigo-600 focus:outline-none focus:ring-1 focus:ring-white">Submit</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="relative">
+        <div class="absolute inset-0 flex items-center" aria-hidden="true">
+            <div class="w-full border-t border-gray-300"></div>
+        </div>
+        <div class="relative flex justify-center">
+            <span class="bg-white px-2 text-gray-500">
+            <svg class="h-5 w-5 text-indigo-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+            </svg>
+            </span>
+        </div>
+    </div>
+    
+    <div class="relative py-4">
+        <div class="flex justify-center gap-2">
+            <!-- Model configuration -->
+            <div id="llm-model-config-panel" class="relative py-2 px-10 w-[90%] lg:w-[46%]">
+                <h2 class="absolute transform left-14 -translate-y-1/2 px-2 font-bold text-indigo-900 bg-white whitespace-nowrap">LLM model selection</h2>
+                
+                <div class="rounded-md border border-gray-400 p-2 flex flex-col items-center pt-6">
+                    <!-- Embedding model selection -->
+                    <div class="relative rounded-md rounded-b-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2 focus-within:ring-indigo-600">
+                        <label for="embed-model" class="block font-medium text-sm text-indigo-900">Embedding model</label>
+                        <select id="embed-model" name="embed-model" class="block rounded-sm w-full border-0 p-1 mb-1 bg-indigo-100 text-sm text-indigo-900 placeholder:text-indigo-500 focus:outline-none focus:ring-0 focus:border-0" required>
+                            <option value="" disabled selected>Set URL/API with embeddings endpoint to view models</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Embedding dimension selection -->
+                    <div class="relative px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2 focus-within:ring-indigo-600">
+                        <label for="embed-dimension" class="block font-medium text-sm text-indigo-900">Dimension: <span id="embed-dimension-output">0</span></label>
+                        <input type="range" id="embed-dimension" name="embed-dimension" class="w-full h-2 rounded-lg cursor-pointer accent-indigo-700" min="0" max="0" value="0" disabled>
+                    </div>
+                    
+                    <!-- Chat model selection -->
+                    <div class="relative rounded-md rounded-t-none px-1.5 pb-1.5 pt-1.5 w-full ring-1 ring-inset ring-gray-400 focus-within:z-10 focus-within:ring-2 focus-within:ring-indigo-600">
+                        <label for="chat-model" class="block font-medium text-sm text-indigo-900">Chat model</label>
+                        <select id="chat-model" name="chat-model" class="block rounded-sm w-full border-0 p-1 mb-1 bg-indigo-100 text-sm text-indigo-900 placeholder:text-indigo-500 focus:outline-none focus:ring-0 focus:border-0" required>
+                            <option value="" disabled selected>Set URL/API with chat endpoint to view models</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
 
 
 <!-- Map source concepts to target concepts -->
@@ -439,20 +519,29 @@ submitData.addEventListener('click', async () => {
     const originalHTML = setButtonState(submitData, true);
 
     try {
+        // Clean up
         clearContainers([sourceSchemaErrorMessage, targetSchemaErrorMessage, mappingErrorMessage]);
-        // Note: in the future, send warning to the user if data already exists in local forage
-        await localforage.clear();
+        resetData.click();
         resetAppUrl();
 
+        // Load schemas and mapping
         await handleSchemaProcessing('source', sourceSchemaUpload, sourceSchemaURL, sourceSchemaErrorMessage);
         await handleSchemaProcessing('target', targetSchemaUpload, targetSchemaURL, targetSchemaErrorMessage);
         await handleMappingProcessing(mappingUpload, mappingURL, mappingErrorMessage);
 
+        // Update URL
         updateAppUrl(sourceSchemaURL.value, targetSchemaURL.value, mappingURL.value);
         displaySuccess('Source schema loaded successfully.', sourceSchemaErrorMessage);
         displaySuccess('Target schema loaded successfully.', targetSchemaErrorMessage);
         if (mappingURL.value || mappingUpload.files.length) {
             displaySuccess('Mapping loaded successfully.', mappingErrorMessage);
+        }
+
+        // Scroll to the next section
+        if (!manageOpenAIApiKey.getKey()) {
+            scrollToContainer('llm-config-panel');
+        } else {
+            scrollToContainer('map-panel');
         }
     } catch (error) {
         if (error instanceof SourceSchemaError) {
@@ -470,15 +559,10 @@ submitData.addEventListener('click', async () => {
 });
 
 
-resetData.addEventListener('click', () => {
-    // TODO
-});
 
 
-// App loaded through URL parameterization
-window.addEventListener('DOMContentLoaded', async () => {
-    // TODO
-});
+
+// Step 2: Configure LLM
 
 
 function clearContainers(containers) {
