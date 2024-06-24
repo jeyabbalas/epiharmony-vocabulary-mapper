@@ -559,7 +559,28 @@ submitData.addEventListener('click', async () => {
 });
 
 
+resetData.addEventListener('click', async () => {
+    // TODO: in the future, send warning to the user if 'sourceSchema' and 'targetSchema' already exists in localforage
+    await localforage.clear();
+});
 
+
+// App loaded through URL parameterization
+window.addEventListener('DOMContentLoaded', async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sourceSchemaUrl = urlParams.get('sourceSchemaUrl');
+    const targetSchemaUrl = urlParams.get('targetSchemaUrl');
+    const mappingUrl = urlParams.get('mappingUrl');
+
+    if (sourceSchemaUrl && targetSchemaUrl) {
+        sourceSchemaURL.value = sourceSchemaUrl;
+        targetSchemaURL.value = targetSchemaUrl;
+        if (mappingUrl) {
+            mappingURL.value = mappingUrl;
+        }
+        submitData.click();
+    }
+});
 
 
 // Step 2: Configure LLM
