@@ -3,7 +3,7 @@ import localforage from 'https://cdn.skypack.dev/localforage@1.10.0?min';
 import './style.css'
 import vocabMapperLogo from '/epiHarmony-VM-logo.svg';
 import githubLogo from '/github-mark.svg';
-import {Embedding, manageOpenAIApiKey} from "./llmUtils.js";
+import {manageOpenAIApiKey, LLM} from "./llmUtils.js";
 
 
 function ui(divID) {
@@ -305,6 +305,13 @@ const resetData = document.getElementById('reset-data');
 const submitData = document.getElementById('submit-data');
 
 
+function clearContainers(containers) {
+    containers.forEach(container => {
+        container.innerHTML = '';
+    });
+}
+
+
 const parseJsonFile = async (file) => {
     const fileText = await file.text();
     return JSON.parse(fileText);
@@ -515,14 +522,31 @@ const resetAppUrl = () => {
 };
 
 
+const emptyDataFields = () => {
+    sourceSchemaUpload.value = '';
+    sourceSchemaURL.value = '';
+    targetSchemaUpload.value = '';
+    targetSchemaURL.value = '';
+    mappingUpload.value = '';
+    mappingURL.value = '';
+};
+
+
+resetData.addEventListener('click', async () => {
+    emptyDataFields();
+    clearContainers([sourceSchemaErrorMessage, targetSchemaErrorMessage, mappingErrorMessage]);
+    // TODO: in the future, send warning to the user if 'sourceSchema' and 'targetSchema' already exists in localforage
+    await localforage.clear();
+    resetAppUrl();
+});
+
+
 submitData.addEventListener('click', async () => {
     const originalHTML = setButtonState(submitData, true);
 
     try {
-        // Clean up
-        clearContainers([sourceSchemaErrorMessage, targetSchemaErrorMessage, mappingErrorMessage]);
-        resetData.click();
-        resetAppUrl();
+        // Clear up everything
+        await localforage.clear();
 
         // Load schemas and mapping
         await handleSchemaProcessing('source', sourceSchemaUpload, sourceSchemaURL, sourceSchemaErrorMessage);
@@ -530,7 +554,11 @@ submitData.addEventListener('click', async () => {
         await handleMappingProcessing(mappingUpload, mappingURL, mappingErrorMessage);
 
         // Update URL
-        updateAppUrl(sourceSchemaURL.value, targetSchemaURL.value, mappingURL.value);
+        if (sourceSchemaURL.value && targetSchemaURL.value) {
+            updateAppUrl(sourceSchemaURL.value, targetSchemaURL.value, mappingURL.value);
+        }
+
+        // Display success messages
         displaySuccess('Source schema loaded successfully.', sourceSchemaErrorMessage);
         displaySuccess('Target schema loaded successfully.', targetSchemaErrorMessage);
         if (mappingURL.value || mappingUpload.files.length) {
@@ -559,14 +587,36 @@ submitData.addEventListener('click', async () => {
 });
 
 
-resetData.addEventListener('click', async () => {
-    // TODO: in the future, send warning to the user if 'sourceSchema' and 'targetSchema' already exists in localforage
-    await localforage.clear();
-});
+const dataLoaded = async () => {
+    const sourceSchema = await localforage.getItem('sourceSchema');
+    const targetSchema = await localforage.getItem('targetSchema');
+    const mapping = await localforage.getItem('mapping');
+
+    return sourceSchema && targetSchema && mapping;
+};
 
 
 // App loaded through URL parameterization
 window.addEventListener('DOMContentLoaded', async () => {
+    if (await dataLoaded()) {
+        // If data already exists in localforage, don't reload it.
+        emptyDataFields();
+
+        // Display success messages
+        displaySuccess('Source schema loaded successfully.', sourceSchemaErrorMessage);
+        displaySuccess('Target schema loaded successfully.', targetSchemaErrorMessage);
+        displaySuccess('Mapping loaded successfully.', mappingErrorMessage);
+
+        // Scroll to the next section
+        if (!manageOpenAIApiKey.getKey()) {
+            scrollToContainer('llm-config-panel');
+        } else {
+            scrollToContainer('map-panel');
+        }
+
+        return;
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     const sourceSchemaUrl = urlParams.get('sourceSchemaUrl');
     const targetSchemaUrl = urlParams.get('targetSchemaUrl');
@@ -584,13 +634,190 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 
 // Step 2: Configure LLM
+const llmBaseUrl = document.getElementById('llm-base-url');
+const llmApiKey = document.getElementById('embed-api-key');
+const forgetApiKey = document.getElementById('forget-api-key');
+const submitApiKey = document.getElementById('submit-api-key');
+const apiKeyMessage = document.getElementById('api-key-message');
+const embedModel = document.getElementById('embed-model');
+const embedDimensionSlider = document.getElementById('embed-dimension');
+const embedDimensionOutput = document.getElementById('embed-dimension-output');
+const chatModel = document.getElementById('chat-model');
+
+let llm;
 
 
-function clearContainers(containers) {
-    containers.forEach(container => {
-        container.innerHTML = '';
+const updateEmbeddingDimensionDisplay = (min, max, value, disabled) => {
+    embedDimensionSlider.min = min;
+    embedDimensionSlider.max = max;
+    embedDimensionSlider.value = value;
+    embedDimensionSlider.disabled = disabled;
+    embedDimensionOutput.textContent = value;
+};
+
+
+const displayDefaultEmbedModelsList = () => {
+    embedModel.innerHTML = '<option value="" disabled selected>Set URL/API with embeddings endpoint to view models</option>';
+    updateEmbeddingDimensionDisplay(0, 0, 0, true);
+};
+
+
+const displayDefaultChatModelsList = () => {
+    chatModel.innerHTML = '<option value="" disabled selected>Set URL/API with chat endpoint to view models</option>';
+};
+
+
+forgetApiKey.addEventListener('click', async () => {
+    llmApiKey.value = '';
+    clearContainers([apiKeyMessage]);
+    displayDefaultEmbedModelsList();
+    displayDefaultChatModelsList();
+
+    manageOpenAIApiKey.deleteKey();
+    llm = null;
+    await localforage.removeItem('embedModel');
+    await localforage.removeItem('dimension');
+    await localforage.removeItem('chatModel');
+});
+
+
+const populateEmbedModels = async (modelsList) => {
+    embedModel.innerHTML = '';
+    embedModel.disabled = false;
+
+    modelsList.forEach((model) => {
+        const option = document.createElement('option');
+        option.value = model;
+        option.text = model;
+        embedModel.appendChild(option);
     });
-}
+
+    // Choose embedding model
+    const presetEmbedModel = await localforage.getItem('embedModel');
+    const dimension = await localforage.getItem('dimension');
+    if (presetEmbedModel && modelsList.includes(presetEmbedModel)) {
+        // Preset
+        embedModel.value = presetEmbedModel;
+        llm.setEmbedModel(presetEmbedModel);
+        const dimensionRangeValues = llm.getEmbedModelDimensionRanges(presetEmbedModel);
+        updateEmbeddingDimensionDisplay(
+            dimensionRangeValues[0], dimensionRangeValues[1],
+            dimension || llm.getEmbedModelDimensionDefaults(presetEmbedModel), false);
+        llm.setDimension(dimension || llm.getEmbedModelDimensionDefaults(presetEmbedModel));
+    } else {
+        // Default to the first model
+        embedModel.value = modelsList[0];
+        llm.setEmbedModel(modelsList[0]);
+        const dimensionRangeValues = llm.getEmbedModelDimensionRanges(modelsList[0]);
+        updateEmbeddingDimensionDisplay(
+            dimensionRangeValues[0], dimensionRangeValues[1],
+            llm.getEmbedModelDimensionDefaults(modelsList[0]), false);
+        llm.setDimension(llm.getEmbedModelDimensionDefaults(modelsList[0]));
+
+        await localforage.setItem('embedModel', modelsList[0]);
+        await localforage.setItem('dimension', llm.getDimension());
+    }
+};
+
+
+const populateChatModels = async (modelsList) => {
+    chatModel.innerHTML = '';
+    chatModel.disabled = false;
+
+    modelsList.forEach((model) => {
+        const option = document.createElement('option');
+        option.value = model;
+        option.text = model;
+        chatModel.appendChild(option);
+    });
+
+    // Choose chat model
+    const presetChatModel = await localforage.getItem('chatModel');
+    if (presetChatModel && modelsList.includes(presetChatModel)) {
+        // Preset
+        chatModel.value = presetChatModel;
+        llm.setChatModel(presetChatModel);
+    } else if (modelsList.includes('gpt-4o-2024-05-13')) {
+        // Default to the latest OpenAI model
+        chatModel.value = 'gpt-4o-2024-05-13';
+        llm.setChatModel('gpt-4o-2024-05-13');
+        await localforage.setItem('chatModel', 'gpt-4o-2024-05-13');
+    } else {
+        // Default to the first model
+        chatModel.value = modelsList[0];
+        llm.setChatModel(modelsList[0]);
+        await localforage.setItem('chatModel', modelsList[0]);
+    }
+};
+
+
+submitApiKey.addEventListener('click', async () => {
+    const originalHTML = setButtonState(submitApiKey, true);
+
+    try {
+        // Clean up
+        clearContainers([apiKeyMessage]);
+
+        // Validate key
+        const baseUrl = llmBaseUrl.value;
+        const apiKey = llmApiKey.value;
+
+        if (!baseUrl || !apiKey) {
+            displayError('Both base URL and API key are required.', apiKeyMessage);
+            return;
+        }
+
+        const isValid = await manageOpenAIApiKey.validateOpenAIApiKey(baseUrl, apiKey);
+        if (isValid) {
+            manageOpenAIApiKey.setKey(apiKey);
+            llm = await LLM.instantiate(baseUrl, apiKey);
+            await populateEmbedModels(llm.getEmbedModelsList());
+            await populateChatModels(llm.getChatModelsList());
+        }
+
+    } catch (error) {
+        displayError(error.message, apiKeyMessage);
+    } finally {
+        setButtonState(submitApiKey, false, originalHTML);
+    }
+});
+
+
+(async () => {
+    const apiKey = manageOpenAIApiKey.getKey();
+    if (apiKey) {
+        llmApiKey.value = apiKey;
+        await submitApiKey.click();
+    }
+})();
+
+
+embedModel.addEventListener('change', async () => {
+    const model = embedModel.value;
+    llm.setEmbedModel(model);
+    const dimensionRangeValues = llm.getEmbedModelDimensionRanges(model);
+    updateEmbeddingDimensionDisplay(
+        dimensionRangeValues[0], dimensionRangeValues[1],
+        llm.getEmbedModelDimensionDefaults(model), false);
+    llm.setDimension(llm.getEmbedModelDimensionDefaults(model));
+
+    await localforage.setItem('embedModel', model);
+    await localforage.setItem('dimension', llm.getDimension());
+});
+
+
+embedDimensionSlider.addEventListener('input', function () {
+    embedDimensionOutput.textContent = this.value;
+    llm.setDimension(parseInt(this.value));
+    localforage.setItem('dimension', llm.getDimension());
+});
+
+
+chatModel.addEventListener('change', async () => {
+    const model = chatModel.value;
+    llm.setChatModel(model);
+    await localforage.setItem('chatModel', model);
+});
 
 
 const exampleJson = {
