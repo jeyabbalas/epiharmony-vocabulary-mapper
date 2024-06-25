@@ -270,8 +270,59 @@ function ui(divID) {
     <div class="inset-0 flex items-center" aria-hidden="true">
         <div class="w-full border-t border-gray-300"></div>
     </div>
+
+    <!-- Map tools -->
+    <div id="map-tools">
+        <div class="relative py-4">
+            <!-- Download buttons-->
+            <div class="flex justify-center gap-2 sm:gap-4">
+                <button id="download-source-schema" class="rounded-md border border-black bg-indigo-700 text-base text-white py-1 px-3 font-medium shadow-md hover:bg-indigo-600 focus:outline-none focus:ring-1 focus:ring-white">Download source schema</button>
+                <button id="download-target-schema" class="rounded-md border border-black bg-indigo-700 text-base text-white py-1 px-3 font-medium shadow-md hover:bg-indigo-600 focus:outline-none focus:ring-1 focus:ring-white">Download target schema</button>
+                <button id="download-mapping" class="rounded-md border border-black bg-indigo-700 text-base text-white py-1 px-3 font-medium shadow-md hover:bg-indigo-600 focus:outline-none focus:ring-1 focus:ring-white">Download mapping</button>
+            </div>
+            
+            <div class="inset-0 flex items-center pt-4" aria-hidden="true">
+                <div class="w-full border-t border-gray-300"></div>
+            </div>
+            
+            <div class="relative pl-6 flex flex-col w-full lg:w-[50%]">
+                <div class="p-4 flex flex-col md:flex-row items-start md:items-center justify-start gap-2">
+                    <p class="block font-medium text-sm text-indigo-900">Query:</p>
+                    <div id="query-combobox" class="p-2">
+                    </div>
+                </div>
+                
+                <div class="p-4 w-full sm:w-[50%]">
+                    <label for="query-neighbors" class="block font-medium text-sm text-indigo-900">Number of nearest neighbors: <span id="query-neighbors-value">5</span></label>
+                    <input type="range" id="query-neighbors" name="query-neighbors" class="w-full h-2 rounded-lg cursor-pointer accent-indigo-700" min="1" max="50" value="5">
+                </div>
+                
+                <div class="p-4 flex items-center justify-start gap-2">
+                    <p class="block font-medium text-sm text-indigo-900">Target concepts:</p>
+                    <div id="query-combobox" class="p-2"></div>
+                    <button id="add-neighbor" class="rounded-md border border-black bg-indigo-700 text-base text-white px-2 font-medium shadow-md hover:bg-indigo-600 focus:outline-none focus:ring-1 focus:ring-white">Add as neighbor</button>
+                </div>
+            </div>
+            
+            <div id="nearest-neighbors" class="p-4"></div>
+                
+            <div class="flex justify-center gap-4 sm:gap-24 py-4">
+                <button id="flag-concept" class="rounded-md border border-black bg-red-700 text-base text-white py-1 px-4 font-medium shadow-md hover:bg-red-600 focus:outline-none focus:ring-1 focus:ring-white">Flag</button>
+                <button id="ask-llm" class="rounded-md border border-black bg-gray-200 text-base text-gray-700 py-1 px-4 font-medium shadow-md hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-white">Ask LLM</button>
+                <button id="map-concepts" class="rounded-md border border-black bg-indigo-700 text-base text-white py-1 px-4 font-medium shadow-md hover:bg-indigo-600 focus:outline-none focus:ring-1 focus:ring-white">Map</button>
+            </div>
+            
+            <div class="inset-0 flex items-center pt-4" aria-hidden="true">
+                <div class="w-full border-t border-gray-300"></div>
+            </div>
+            
+            <div id="llm-chat" class="p-4"></div>
+
+        </div>
+    </div>
+
 </div>
-<div id="nearest-neighbors" class="p-4"></div>
+
      `;
 }
 
@@ -757,6 +808,10 @@ submitApiKey.addEventListener('click', async () => {
     try {
         // Clean up
         clearContainers([apiKeyMessage]);
+        llm = null;
+        await localforage.removeItem('embedModel');
+        await localforage.removeItem('dimension');
+        await localforage.removeItem('chatModel');
 
         // Validate key
         const baseUrl = llmBaseUrl.value;
@@ -775,6 +830,11 @@ submitApiKey.addEventListener('click', async () => {
             await populateChatModels(llm.getChatModelsList());
         }
 
+        // Display success message
+        displaySuccess('API key is valid.', apiKeyMessage);
+
+        // Scroll to the next section
+        scrollToContainer('map-panel');
     } catch (error) {
         displayError(error.message, apiKeyMessage);
     } finally {
@@ -820,9 +880,57 @@ chatModel.addEventListener('change', async () => {
 });
 
 
+// Step 3: Map source concepts to target concepts
+const downloadSourceSchema = document.getElementById('download-source-schema');
+const downloadTargetSchema = document.getElementById('download-target-schema');
+const downloadMapping = document.getElementById('download-mapping');
+
+
+downloadSourceSchema.addEventListener('click', async () => {
+    const sourceSchema = await localforage.getItem('sourceSchema');
+    if (sourceSchema) {
+        const sourceSchemaBlob = new Blob([JSON.stringify(sourceSchema, null, 2)], {type: 'application/json'});
+        const sourceSchemaUrl = URL.createObjectURL(sourceSchemaBlob);
+
+        const downloadLink = document.createElement('a');
+        downloadLink.href = sourceSchemaUrl;
+        downloadLink.download = 'source-schema.json';
+        downloadLink.click();
+    }
+});
+
+
+downloadTargetSchema.addEventListener('click', async () => {
+    const targetSchema = await localforage.getItem('targetSchema');
+    if (targetSchema) {
+        const targetSchemaBlob = new Blob([JSON.stringify(targetSchema, null, 2)], {type: 'application/json'});
+        const targetSchemaUrl = URL.createObjectURL(targetSchemaBlob);
+
+        const downloadLink = document.createElement('a');
+        downloadLink.href = targetSchemaUrl;
+        downloadLink.download = 'target-schema.json';
+        downloadLink.click();
+    }
+});
+
+
+downloadMapping.addEventListener('click', async () => {
+    const mapping = await localforage.getItem('mapping');
+    if (mapping) {
+        const mappingBlob = new Blob([JSON.stringify(mapping, null, 2)], {type: 'application/json'});
+        const mappingUrl = URL.createObjectURL(mappingBlob);
+
+        const downloadLink = document.createElement('a');
+        downloadLink.href = mappingUrl;
+        downloadLink.download = 'mapping.json';
+        downloadLink.click();
+    }
+});
+
+
 const exampleJson = {
-    "name": {type: ["string", "null"], "description": "Name of the person"},
-    "age": {type: ["number", "null"], "description": "Age of the person"},
+    "name": {"type": ["string", "null"], "description": "Name of the person"},
+    "age": {"type": ["number", "null"], "description": "Age of the person"},
     "address": {
         "type": "object",
         "description": "Address of the person",
@@ -837,6 +945,8 @@ const exampleJson = {
         "pattern": "^(+d{1,2}s)?(?d{3})?[s.-]d{3}[s.-]d{4}$"
     }
 };
+
+
 
 generateJsonSchemaUI('nearest-neighbors', exampleJson);
 
